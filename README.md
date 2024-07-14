@@ -2,6 +2,7 @@ whistle is a bash script to automate recon by utilizing subdomain discovery tool
 ## prequisites:
 assetfinder, subfinder, sublister, amass, httprobe, gowitness
 # flags:
+```
 Usage: ./whistle.sh -d <domain> -flags  -o <out_folder>
 
   -d <domain>    Target domain
@@ -12,8 +13,9 @@ Usage: ./whistle.sh -d <domain> -flags  -o <out_folder>
   -o <filename>  Save output to a file
   ## Example:
 ```
-./whistle.sh -d google.com -a -s -o google_recon
-```
+## example:
+`./whistle.sh -d google.com -a -s -o google_recon`
+
 
 ## demo:
 ![image](https://github.com/user-attachments/assets/529759f8-bac2-4d95-9bd8-545f422dc172)
