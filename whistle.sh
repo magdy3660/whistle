@@ -29,31 +29,22 @@ print_color $RED "$banner"
 
 # Print the tool name
 print_color  " version 0.1 by intr0sp3ct"
-usage() {
-    echo "-----------------------------------------------------------------------------"
-    echo "Usage: $0 -d <domain> -flags  -o <out_folder>"
-    echo "example: ./recondog.sh -d target.com -a -s -o <output_folder> "
-    echo "  -d <domain>    Target domain"
-    echo "  -f             Run fast tools only (assetfinder, subfinder, sublister)"
-    echo "  -a             Run all tools"
-    echo "  -w <wordlist>  Custom wordlist"
-    echo "  -s             Screenshot live domains with gowitness"
-    echo "  -o <filename>  Save output to a file"
-    echo "-----------------------------------------------------------------------------"
 
+#!/bin/bash
+
+# Usage function
+usage() {
+    echo "Usage: $0 -d <domain>  [-w <wordlist>]"
+    echo "  -d <domain>    Target domain"
+    echo "  -w <wordlist>  Custom wordlist for subdomain enumeration"
     exit 1
 }
 
-
 # Parse command line arguments
-while getopts ":d:faw:so:" opt; do
+while getopts ":d:faw:" opt; do
     case ${opt} in
         d ) domain=$OPTARG ;;
-        f ) fast_mode=true ;;
-        a ) all_tools=true ;;
         w ) wordlist=$OPTARG ;;
-        s ) screenshot=true ;;
-        o ) output_file=$OPTARG ;;
         \? ) usage ;;
     esac
 done
@@ -78,11 +69,9 @@ run_tool() {
             assetfinder --subs-only "$domain" > "$output_file"
             ;;
         amass)
-            if [ "$fast_mode" = true ]; then
-                amass enum -passive -d "$domain" > "$output_file"
-            else
-                amass enum -active -d "$domain" -w "$wordlist" > "$output_file"
-            fi
+          
+                amass enum -d "$domain" > "$output_file"  
+
             ;;
         subfinder)
             if [ -n "$wordlist" ]; then
@@ -91,31 +80,16 @@ run_tool() {
                 subfinder -d "$domain" -o "$output_file"
             fi
             ;;
-        sublist3r)
-            sublist3r -d "$domain" -o "$output_file"
-            ;;
     esac
 }
 
-# Run selected tools concurrently
-run_tools_concurrently() {
-    for tool in "$@"; do
-        run_tool "$tool" &
-    done
-    wait
-}
+# Run selected tools
 
-# Determine which tools to run
-if [ "$fast_mode" = true ]; then
-    tools_to_run="assetfinder subfinder sublist3r"
-elif [ "$all_tools" = true ]; then
-    tools_to_run="assetfinder amass subfinder sublist3r"
-else
-    tools_to_run="assetfinder subfinder"
-fi
+    run_tool assetfinder
+    run_tool subfinder
+    echo" AMASS CAN BE SLOW HANG ON"
+    run_tool amass
 
-# Run tools
-run_tools_concurrently $tools_to_run
 
 # Combine and clean results
 combined_output="$output_dir/combined_subdomains.txt"
@@ -124,25 +98,11 @@ cat "$output_dir"/*_output.txt | sort -u > "$combined_output"
 # Run httprobe
 echo "Running httprobe..."
 httprobe_output="$output_dir/live_subdomains.txt"
-cat "$combined_output" | httprobe  > "$httprobe_output"
+cat "$combined_output" | httprobe > "$httprobe_output"
 
-# Run gowitness if screenshot option is enabled
-if [ "$screenshot" = true ]; then
-    echo "Running gowitness..."
-    gowitness_output="$output_dir/screenshots/"
-    mkdir -p "$gowitness_output"
-    gowitness file -f "$httprobe_output" -P "$gowitness_output" --no-http
-fi
-
-# Save output to file if specified
-if [ -n "$output_file" ]; then
-    cp "$combined_output" "$output_file"
-    echo "Output saved to $output_file"
-fi
-
+# Run gowitness
+echo "Running goWitness..."
+gowitness_output="$output_dir/screenshots"
+gowitness file -f "$httprobe_output" -P "$gowitness_output" 
 
 echo "Recon complete. Results are stored in the $output_dir directory."
-encryption relies on 2 keys, a public and private
-- user requests an ssh session with a public key of the server
-- server responds with a user's public key that can only be decrypted by a user's private key
-- user submits it , server checks if it scorrect
