@@ -11,7 +11,7 @@ Usage: ./whistle.sh -d <domain> -flags  -o <out_folder>
   -w <wordlist>  Custom wordlist
   -s             Screenshot live domains with gowitness
   -o <filename>  Save output to a file
-  ## Example:
+ 
 ```
 ## example:
 `./whistle.sh -d google.com -a -s -o google_recon`
